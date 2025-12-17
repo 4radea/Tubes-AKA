@@ -2,11 +2,11 @@
 main.py
 
 Interaktif:
-- Jalankan pengukuran performa Bubble Sort & Binary Search
+- Menjalankan pengukuran performa Merge Sort (iteratif vs rekursif) & Binary Search
 - Menampilkan:
-  1) Hasil pengukuran (dipisah): PERFORMA BUBBLE SORT / PERFORMA BINARY SEARCH
-  2) Kesimpulan tabel pengukurannya
-  3) Tabel perbandingan performa (ASCII table)
+  1) Tabel perbandingan performa (ASCII table)
+  2) Grafik perbandingan (disimpan sebagai compare.png dan ditampilkan jika memungkinkan)
+- Pilihan grafik: 1=Merge Sort, 2=Binary Search, 3=Keduanya (default)
 """
 
 import random
@@ -18,16 +18,17 @@ import re
 
 import matplotlib.pyplot as plt
 
-from algorithms import (
-    bubble_sort_iterative,
-    bubble_sort_recursive,
+# import dari file yang baru: algoritma.py
+from algoritma import (
+    merge_sort_iterative,
+    merge_sort_recursive,
     binary_search_iterative,
     binary_search_recursive,
 )
 
-# Default eksperimen
-DEFAULT_SORT_SIZES = [10, 20, 30, 50]
-DEFAULT_SEARCH_SIZES = [10, 15, 30, 100]
+# Default eksperimen (Anda bisa menaikkannya karena Merge Sort lebih efisien)
+DEFAULT_SORT_SIZES = [100, 500, 1000]
+DEFAULT_SEARCH_SIZES = [100, 1000, 5000]
 DEFAULT_REPEATS = 5
 
 # Utility
@@ -45,7 +46,6 @@ def parse_sizes(input_str: str, default: List[int]) -> List[int]:
     if s == "" or s.lower() in ("d", "default"):
         return default
     try:
-        # Terima pemisah spasi atau koma (prompt tidak menyebut koma, tapi parser toleran)
         parts = [p.strip() for p in re.split(r"[\s,]+", s) if p.strip() != ""]
         sizes = sorted({max(1, int(float(p))) for p in parts})
         return sizes
@@ -69,8 +69,8 @@ def benchmark_sorting(sizes: List[int], repeats: int) -> List[Tuple[int, float, 
     results: List[Tuple[int, float, float]] = []
     for n in sizes:
         arr = [random.randint(0, 1000000) for _ in range(n)]
-        t_iter = time_ms(bubble_sort_iterative, arr, repeats=repeats)
-        t_rec = time_ms(bubble_sort_recursive, arr, repeats=repeats)
+        t_iter = time_ms(merge_sort_iterative, arr, repeats=repeats)
+        t_rec = time_ms(merge_sort_recursive, arr, repeats=repeats)
         results.append((n, t_rec, t_iter))
     return results
 
@@ -86,18 +86,7 @@ def benchmark_searching(sizes: List[int], repeats: int) -> List[Tuple[int, float
         results.append((n, t_rec, t_iter))
     return results
 
-# Cetak hasil terpisah sesuai permintaan
-def print_separated_results(sort_results, search_results):
-    if sort_results:
-        print("\nPERFORMA BUBBLE SORT")
-        for n, rec, itr in sort_results:
-            print(f"n={n:5d}  recursive={rec:.6f} ms  iterative={itr:.6f} ms")
-    if search_results:
-        print("\nPERFORMA BINARY SEARCH")
-        for n, rec, itr in search_results:
-            print(f"n={n:5d}  recursive={rec:.6f} ms  iterative={itr:.6f} ms")
-
-# Cetak tabel ASCII (kedua tabel: sort dan search)
+# Cetak tabel ASCII (untuk sort dan search)
 def print_table(title: str, results):
     if not results:
         print(f"\n{title}: (no data)")
@@ -120,32 +109,36 @@ def print_table(title: str, results):
         ) + " |")
     print("+" + line + "+")
 
-# (opsional) plotting fungsi (sama seperti sebelumnya)
-def plot_results(sort_results, search_results, out_filename="compare.png"):
-    subplots = 0
-    if sort_results:
-        subplots += 1
-    if search_results:
-        subplots += 1
-    if subplots == 0:
+# Plotting: menampilkan grafik sesuai pilihan user
+def plot_results(sort_results, search_results, plot_choice: int, out_filename="compare.png"):
+    # plot_choice: 1=merge sort, 2=binary search, 3=both
+    to_plot_sort = (plot_choice == 1 or plot_choice == 3) and bool(sort_results)
+    to_plot_search = (plot_choice == 2 or plot_choice == 3) and bool(search_results)
+
+    if not to_plot_sort and not to_plot_search:
+        print("Tidak ada data untuk digrafikkan sesuai pilihan.")
         return
+
+    subplots = (1 if to_plot_sort else 0) + (1 if to_plot_search else 0)
     fig, axes = plt.subplots(1, subplots, figsize=(7 * subplots, 5))
     if subplots == 1:
         axes = [axes]
     idx = 0
-    if sort_results:
+
+    if to_plot_sort:
         x = [r[0] for r in sort_results]
         rec = [r[1] for r in sort_results]
         itr = [r[2] for r in sort_results]
-        axes[idx].plot(x, itr, marker='o', color='blue', label='Iterative')
-        axes[idx].plot(x, rec, marker='s', color='green', linestyle='--', label='Recursive')
-        axes[idx].set_title("Bubble Sort: Iteratif vs Rekursif")
+        axes[idx].plot(x, itr, marker='o', color='blue', label='Iterative (bottom-up)')
+        axes[idx].plot(x, rec, marker='s', color='green', linestyle='--', label='Recursive (top-down)')
+        axes[idx].set_title("Merge Sort: Iteratif vs Rekursif")
         axes[idx].set_xlabel("Data Size (n)")
         axes[idx].set_ylabel("Execution Time (ms)")
         axes[idx].legend()
         axes[idx].grid(True)
         idx += 1
-    if search_results:
+
+    if to_plot_search:
         x = [r[0] for r in search_results]
         rec = [r[1] for r in search_results]
         itr = [r[2] for r in search_results]
@@ -156,8 +149,10 @@ def plot_results(sort_results, search_results, out_filename="compare.png"):
         axes[idx].set_ylabel("Execution Time (ms)")
         axes[idx].legend()
         axes[idx].grid(True)
+
     plt.tight_layout()
     plt.savefig(out_filename, dpi=150)
+    print(f"\nGrafik disimpan ke: {out_filename}")
     try:
         plt.show()
     except Exception:
@@ -165,45 +160,47 @@ def plot_results(sort_results, search_results, out_filename="compare.png"):
 
 def interactive():
     random.seed(42)
-    print("=== Pengukuran Performa: Bubble Sort & Binary Search ===")
-    run_sort = input("Jalankan pengukuran performa Bubble Sort? (y/n) [y]: ").strip().lower()
+    print("=== Pengukuran Performa: Merge Sort & Binary Search ===")
+    run_sort = input("Jalankan pengukuran performa Merge Sort? (y/n) [y]: ").strip().lower()
     run_sort = (run_sort == "" or run_sort == "y" or run_sort == "yes")
     run_search = input("Jalankan pengukuran performa Binary Search? (y/n) [y]: ").strip().lower()
     run_search = (run_search == "" or run_search == "y" or run_search == "yes")
 
     sort_sizes = []
     if run_sort:
-        s = input(f"Masukkan ukuran data Bubble Sort (pisahkan angka dengan spasi) atau tekan Enter untuk default {DEFAULT_SORT_SIZES}: ")
+        s = input(f"Masukkan ukuran data Merge Sort atau tekan Enter untuk default {DEFAULT_SORT_SIZES}: ")
         sort_sizes = parse_sizes(s, DEFAULT_SORT_SIZES)
 
     search_sizes = []
     if run_search:
-        s = input(f"Masukkan ukuran data Binary Search (pisahkan angka dengan spasi) atau tekan Enter untuk default {DEFAULT_SEARCH_SIZES}: ")
+        s = input(f"Masukkan ukuran data Binary Search atau tekan Enter untuk default {DEFAULT_SEARCH_SIZES}: ")
         search_sizes = parse_sizes(s, DEFAULT_SEARCH_SIZES)
 
     repeats = parse_positive_int(input(f"Masukkan jumlah repeats untuk rata-rata [default {DEFAULT_REPEATS}]: "), DEFAULT_REPEATS)
 
-    print("\nMulai pengukuran performa...\n")
+    # jalankan pengukuran (tanpa mencetak per-bar)
     sort_results = benchmark_sorting(sort_sizes, repeats) if run_sort else []
     search_results = benchmark_searching(search_sizes, repeats) if run_search else []
 
-    # 1) Tampilkan hasil terpisah terlebih dahulu (seperti format yang Anda minta)
-    print_separated_results(sort_results, search_results)
-
-    # 2) Tambahkan keterangan sebelum tabel
-    print("\nKESIMPULAN TABEL PENGUKURAN:")
-
-    # 3) Tampilkan tabel perbandingan performa (tetap ditampilkan setelah keterangan)
+    # Tampilkan tabel perbandingan performa
     if sort_results:
-        print_table("PERBANDINGAN PERFORMA: Bubble Sort (Recursive vs Iterative)", sort_results)
+        print_table("PERBANDINGAN PERFORMA: Merge Sort (Recursive vs Iterative)", sort_results)
     if search_results:
         print_table("PERBANDINGAN PERFORMA: Binary Search (Recursive vs Iterative)", search_results)
 
-    # opsi: simpan/tampilkan grafik
-    save_plot = input("\nSimpan dan tampilkan grafik? (y/n) [y]: ").strip().lower()
-    if save_plot == "" or save_plot == "y" or save_plot == "yes":
-        plot_results(sort_results, search_results)
-        print("Grafik disimpan sebagai 'compare.png' (jika ada data).")
+    # Pilih grafik yang ingin ditampilkan
+    print("\nPilih grafik yang ingin ditampilkan:")
+    print("  1) Merge Sort")
+    print("  2) Binary Search")
+    print("  3) Keduanya (default)")
+    try:
+        choice_raw = input("Masukkan pilihan (1/2/3) atau default[3]: ").strip()
+        plot_choice = int(choice_raw) if choice_raw in ("1", "2", "3") else 3
+    except Exception:
+        plot_choice = 3
+
+    # Plot sesuai pilihan
+    plot_results(sort_results, search_results, plot_choice)
 
     print("\nSelesai.")
 
