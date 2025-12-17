@@ -1,41 +1,58 @@
 """
-algorithms.py
+algoritma.py
 
-Berisi:
-- bubble_sort_iterative(arr)
-- bubble_sort_recursive(arr, n=None)
+Implementasi algoritma:
+- merge_sort_iterative(arr)  # bottom-up iterative mergesort
+- merge_sort_recursive(arr)  # top-down recursive mergesort
 - binary_search_iterative(arr, target)
 - binary_search_recursive(arr, target, left=0, right=None)
 """
 
 from typing import List, Optional
 
-def bubble_sort_iterative(arr: List[int]) -> List[int]:
-    a = arr[:]  # salin agar tidak mengubah input
-    n = len(a)
-    for i in range(n):
-        swapped = False
-        for j in range(0, n - 1 - i):
-            if a[j] > a[j + 1]:
-                a[j], a[j + 1] = a[j + 1], a[j]
-                swapped = True
-        if not swapped:
-            break
-    return a
+def merge(left: List[int], right: List[int]) -> List[int]:
+    i = j = 0
+    out: List[int] = []
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            out.append(left[i])
+            i += 1
+        else:
+            out.append(right[j])
+            j += 1
+    if i < len(left):
+        out.extend(left[i:])
+    if j < len(right):
+        out.extend(right[j:])
+    return out
 
-def bubble_sort_recursive(arr: List[int], n: Optional[int] = None) -> List[int]:
-    # Implementasi rekursif: lakukan satu pass lalu rekursi pada prefix
-    a = arr[:]  # salin lokal agar pure
-    if n is None:
-        n = len(a)
+def merge_sort_recursive(arr: List[int]) -> List[int]:
+    # Top-down mergesort (rekursif)
+    n = len(arr)
     if n <= 1:
-        return a
-    for i in range(n - 1):
-        if a[i] > a[i + 1]:
-            a[i], a[i + 1] = a[i + 1], a[i]
-    # rekursi pada bagian pertama
-    prefix_sorted = bubble_sort_recursive(a[:n - 1], n - 1)
-    return prefix_sorted + [a[n - 1]]
+        return arr[:]
+    mid = n // 2
+    left = merge_sort_recursive(arr[:mid])
+    right = merge_sort_recursive(arr[mid:])
+    return merge(left, right)
+
+def merge_sort_iterative(arr: List[int]) -> List[int]:
+    # Bottom-up (iterative) mergesort
+    n = len(arr)
+    if n <= 1:
+        return arr[:]
+    a = arr[:]
+    width = 1
+    # temp array for merging
+    while width < n:
+        new_a: List[int] = []
+        for i in range(0, n, 2 * width):
+            left = a[i:i+width]
+            right = a[i+width:i+2*width]
+            new_a.extend(merge(left, right))
+        a = new_a
+        width *= 2
+    return a
 
 def binary_search_iterative(arr: List[int], target: int) -> int:
     left = 0
