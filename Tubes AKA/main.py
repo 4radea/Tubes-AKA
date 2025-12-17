@@ -2,11 +2,11 @@
 main.py
 
 Interaktif:
-- Menjalankan pengukuran performa Merge Sort (iteratif vs rekursif) & Binary Search
+- Menjalankan pengukuran performa Merge Sort & Binary Search sesuai pilihan user
 - Menampilkan:
   1) Tabel perbandingan performa (ASCII table)
-  2) Grafik perbandingan (disimpan sebagai compare.png dan ditampilkan jika memungkinkan)
-- Pilihan grafik: 1=Merge Sort, 2=Binary Search, 3=Keduanya (default)
+  2) Menanyakan apakah akan menampilkan grafik perbandingan; jika ya maka
+     menampilkan grafik untuk keduanya (jika data tersedia) dan menyimpannya.
 """
 
 import random
@@ -18,7 +18,7 @@ import re
 
 import matplotlib.pyplot as plt
 
-# import dari file yang baru: algoritma.py
+# import dari file algoritma.py
 from algoritma import (
     merge_sort_iterative,
     merge_sort_recursive,
@@ -26,7 +26,7 @@ from algoritma import (
     binary_search_recursive,
 )
 
-# Default eksperimen (Anda bisa menaikkannya karena Merge Sort lebih efisien)
+# Default eksperimen
 DEFAULT_SORT_SIZES = [100, 500, 1000]
 DEFAULT_SEARCH_SIZES = [100, 1000, 5000]
 DEFAULT_REPEATS = 5
@@ -109,23 +109,23 @@ def print_table(title: str, results):
         ) + " |")
     print("+" + line + "+")
 
-# Plotting: menampilkan grafik sesuai pilihan user
-def plot_results(sort_results, search_results, plot_choice: int, out_filename="compare.png"):
-    # plot_choice: 1=merge sort, 2=binary search, 3=both
-    to_plot_sort = (plot_choice == 1 or plot_choice == 3) and bool(sort_results)
-    to_plot_search = (plot_choice == 2 or plot_choice == 3) and bool(search_results)
-
-    if not to_plot_sort and not to_plot_search:
-        print("Tidak ada data untuk digrafikkan sesuai pilihan.")
+# Plotting: menampilkan grafik keduanya (satu subplot per algoritma yang ada)
+def plot_results_both(sort_results, search_results, out_filename="compare.png"):
+    subplots = 0
+    if sort_results:
+        subplots += 1
+    if search_results:
+        subplots += 1
+    if subplots == 0:
+        print("Tidak ada data untuk digrafikkan.")
         return
 
-    subplots = (1 if to_plot_sort else 0) + (1 if to_plot_search else 0)
     fig, axes = plt.subplots(1, subplots, figsize=(7 * subplots, 5))
     if subplots == 1:
         axes = [axes]
     idx = 0
 
-    if to_plot_sort:
+    if sort_results:
         x = [r[0] for r in sort_results]
         rec = [r[1] for r in sort_results]
         itr = [r[2] for r in sort_results]
@@ -138,7 +138,7 @@ def plot_results(sort_results, search_results, plot_choice: int, out_filename="c
         axes[idx].grid(True)
         idx += 1
 
-    if to_plot_search:
+    if search_results:
         x = [r[0] for r in search_results]
         rec = [r[1] for r in search_results]
         itr = [r[2] for r in search_results]
@@ -176,7 +176,7 @@ def interactive():
         s = input(f"Masukkan ukuran data Binary Search atau tekan Enter untuk default {DEFAULT_SEARCH_SIZES}: ")
         search_sizes = parse_sizes(s, DEFAULT_SEARCH_SIZES)
 
-    repeats = parse_positive_int(input(f"Masukkan jumlah repeats untuk rata-rata [default {DEFAULT_REPEATS}]: "), DEFAULT_REPEATS)
+    repeats = parse_positive_int(input(f"Masukkan jumlah perulangan untuk rata-rata [default {DEFAULT_REPEATS}]: "), DEFAULT_REPEATS)
 
     # jalankan pengukuran (tanpa mencetak per-bar)
     sort_results = benchmark_sorting(sort_sizes, repeats) if run_sort else []
@@ -184,23 +184,19 @@ def interactive():
 
     # Tampilkan tabel perbandingan performa
     if sort_results:
-        print_table("PERBANDINGAN PERFORMA: Merge Sort (Recursive vs Iterative)", sort_results)
+        print_table("PERBANDINGAN PERFORMA: Merge Sort (Recursif vs Iteratif)", sort_results)
     if search_results:
-        print_table("PERBANDINGAN PERFORMA: Binary Search (Recursive vs Iterative)", search_results)
+        print_table("PERBANDINGAN PERFORMA: Binary Search (Recursif vs Iteratif)", search_results)
 
-    # Pilih grafik yang ingin ditampilkan
-    print("\nPilih grafik yang ingin ditampilkan:")
-    print("  1) Merge Sort")
-    print("  2) Binary Search")
-    print("  3) Keduanya (default)")
-    try:
-        choice_raw = input("Masukkan pilihan (1/2/3) atau default[3]: ").strip()
-        plot_choice = int(choice_raw) if choice_raw in ("1", "2", "3") else 3
-    except Exception:
-        plot_choice = 3
+    # Tanyakan ke user sebelum menampilkan grafik
+    show_plot = input("\nTampilkan grafik perbandinganya? (y/n) [y]: ").strip().lower()
+    show_plot = (show_plot == "" or show_plot == "y" or show_plot == "yes")
 
-    # Plot sesuai pilihan
-    plot_results(sort_results, search_results, plot_choice)
+    if show_plot:
+        print("\nMenampilkan grafik untuk kedua algoritma ...")
+        plot_results_both(sort_results, search_results)
+    else:
+        print("\nGrafik tidak ditampilkan.")
 
     print("\nSelesai.")
 
