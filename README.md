@@ -17,32 +17,6 @@ Struktur proyek
 - `requirements.txt` : daftar dependensi (matplotlib).
 - `compare.png`  : (dihasilkan) grafik perbandingan.
 
-Persyaratan
------------
-- Python 3.8+ (direkomendasikan)
-- Paket Python:
-  - matplotlib
-
-Instalasi
----------
-1. (Opsional tetapi direkomendasikan) Buat virtual environment:
-   - Linux / macOS:
-     ```bash
-     python -m venv venv
-     source venv/bin/activate
-     ```
-   - Windows (PowerShell):
-     ```powershell
-     python -m venv venv
-     .\venv\Scripts\Activate.ps1
-     ```
-
-2. Install dependensi:
-   ```bash
-   python -m pip install --upgrade pip setuptools wheel
-   python -m pip install -r requirements.txt
-   ```
-
 Menjalankan program
 -------------------
 Jalankan program:
