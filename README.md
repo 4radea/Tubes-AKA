@@ -2,6 +2,8 @@
 
 Deskripsi singkat
 -----------------
+Study case ini bertujuan untuk membandingkan performa (waktu eksekusi rata‑rata) antara dua pendekatan implementasi untuk algoritma sorting dan searching: implementasi rekursif (top‑down) dan iteratif (bottom‑up). Pada bagian sorting digunakan Merge Sort (dua varian: rekursif dan iteratif), sedangkan pada bagian searching digunakan Binary Search (rekursif vs iteratif). Eksperimen dijalankan pada beberapa ukuran data, misalkan (n = 10, 20, 30) dengan pengukuran diulang beberapa kali untuk memperoleh nilai rata‑rata (dalam milidetik). Tujuan study case ini adalah melihat perbedaan waktu eksekusi dan mempelajari sejauh mana overhead rekursi memengaruhi performa pada berbagai ukuran input
+
 Program ini melakukan pengukuran performa (kecepatan eksekusi) untuk:
 - Merge Sort (dua varian): iteratif (bottom-up) dan rekursif (top-down)
 - Binary Search: iteratif dan rekursif
@@ -9,20 +11,6 @@ Program ini melakukan pengukuran performa (kecepatan eksekusi) untuk:
 Program menampilkan:
 1. Tabel perbandingan performa (ASCII table) — waktu rata-rata dalam ms (milidetik).
 2. Grafik perbandingan (disimpan sebagai `compare.png` dan ditampilkan jika environment mendukung).
-
-Struktur proyek
----------------
-- `main.py`      : file utama, interaktif, menjalankan pengukuran, mencetak tabel, dan membuat grafik.
-- `algoritma.py` : implementasi algoritma (merge sort iteratif & rekursif, binary search iteratif & rekursif).
-- `requirements.txt` : daftar dependensi (matplotlib).
-- `compare.png`  : (dihasilkan) grafik perbandingan.
-
-Menjalankan program
--------------------
-Jalankan program:
-```bash
-python main.py
-```
 
 Contoh interaksi singkat:
 - Program akan menanyakan apakah Anda ingin menjalankan pengukuran Merge Sort dan/atau Binary Search.
@@ -43,11 +31,10 @@ Penjelasan satuan waktu (ms)
 - Contoh: `0.018340 ms` ≈ 18.34 mikrodetik (μs).
 - Untuk operasi sangat cepat (microsecond-level), hasil sangat sensitif terhadap noise (proses lain, scheduling CPU). Gunakan repeats besar atau akumulasi panggilan jika perlu hasil lebih stabil.
 
-Mengapa Merge Sort / Timsort direkomendasikan
+Mengapa Merge Sort direkomendasikan
 ---------------------------------------------
 - Merge Sort: kompleksitas O(n log n) — efisien untuk data berukuran sedang sampai besar.
-- Praktik Python: gunakan built‑in `list.sort()` (Timsort) untuk kebutuhan produksi — cepat dan dioptimalkan.
-- Binary Search memerlukan data terurut; gunakan algoritma pengurutan efisien untuk pra‑proses.
+- Binary Search memerlukan data terurut; menggunakan algoritma pengurutan efisien untuk pra‑proses.
 
 Tips untuk pengukuran yang valid
 -------------------------------
